@@ -6,7 +6,7 @@ from rapidfuzz import process
 app = Flask(__name__)
 
 # Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", ""))
+client = OpenAI(api_key=os.environ("OPENAI_API_KEY", ""))
 
 # Load events JSON
 try:
