@@ -7,7 +7,7 @@ app = Flask(__name__)
 key = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 print("OpenAI Key Loaded:", len(key) if key else "MISSING")
 # Initialize OpenAI client
-client = OpenAI(api_key=os.environ.get["OPENAI_API_KEY"])
+client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 # Load events JSON
 try:
