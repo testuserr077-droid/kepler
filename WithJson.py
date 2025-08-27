@@ -4,7 +4,7 @@ import os, json, re
 from rapidfuzz import process
 
 app = Flask(__name__)
-api_key = os.environ.get("OPENAI_API_KEY")
+api_key = os.environ.get("OPENAI_API_KEY").strip()
 
 if api_key:
     print("✅ OpenAI Key Loaded, length:", len(api_key))
