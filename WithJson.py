@@ -5,7 +5,11 @@ from rapidfuzz import process
 
 app = Flask(__name__)
 key = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-print("OpenAI Key Loaded:", len(key) if key else "MISSING")
+# Debug logging: just print the length of the key string
+if key:
+    print("✅ OpenAI Key Loaded, length:", len(key))
+else:
+    print("❌ OpenAI Key MISSING")
 # Initialize OpenAI client
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
