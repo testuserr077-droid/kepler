@@ -11,7 +11,7 @@ if api_key:
 else:
     print("❌ OpenAI Key MISSING")
 # Initialize OpenAI client
-client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+client = OpenAI(api_key=api_key)
 
 # Load events JSON
 try:
