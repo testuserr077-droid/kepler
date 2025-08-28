@@ -28,6 +28,12 @@ for e in EVENTS:
     g = e.get("group_id")
     if g:
         GROUP_MAP.setdefault(g.lower(), []).append(e)
+VALID_GROUPS = [
+    "Non Weather", "snow", "announcement_group", "Visibility", "Snow/Ice", 
+    "Rain", "lightning", "storm", "wind_gusts", "Dust", "tornado", "snow_pack", 
+    "hail", "flooding", "air_quality", "wind", "iceing", "shake_alert", 
+    "red_flag -957", "flood", "psa_group", "temperature", "tropical_storm", "snow_acc"
+]
 
 # Helper to normalize text for matching safely
 def normalize_text(text: str) -> str:
@@ -105,7 +111,9 @@ def extract_id():
         Rules:
         1. Extract the facility_id: this is always a user-provided identifier like GREAT_FALLS_100, NV1, abc2, etc. USe underscore (_) if space are there in facility_id.
         2. Extract the event_id: this is a specific event in the system, like flash_flood_advisory_level3, low_temperature_1, rain_advisory_level2.
-        3. Extract the group_id: this is the parent category of the event_id, like flooding, temperature, snow_pack. use {GROUP_MAP} for matching.
+        3. group_id → must be one of: {VALID_GROUPS}. if event_id is present then group id is just a parent category of that so extract from that if matching with {VALID_GROUPS}. 
+        Match even if user writes without underscore or with spaces 
+        (e.g. "snow ice" → "Snow/Ice"). 
         4. Extract alertStatus: classify as alert, warning, safe, or null based on user language.
         5. Determine intent:
             - "ALL" if user asks for all IDs
