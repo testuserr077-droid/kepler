@@ -203,7 +203,7 @@ def extract_id():
         Input: "show me subscribed facility having thunder storm level 1"
         Output:
         {{
-            "facility_id": ["]",
+            "facility_id": [""],
             "event_id": "thunderstorm_level1",
             "group_id": "storm",
             "alertStatus": "alert",
