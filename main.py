@@ -82,6 +82,7 @@ def map_event_or_group_from_ai(ai_data: dict):
 
     hint = ai_data.get("event_id") or ai_data.get("summary") or ""
     norm_hint = normalize_text(hint)
+    print('1111', norm_hint)
     if not norm_hint:
         return {"event_id": None, "group_id": None, "alertStatus": None}
 
@@ -161,7 +162,7 @@ def extract_id():
             - If the user says "current location" or Similar own location → return as ["CURRENT_LOCATION"].
             - Use underscores (_) if spaces exist in a facility_id.
             - If none found → return [] (empty list).
-        2. Extract the event_id: this is a specific event in the system, like flash_flood_advisory_level3, low_temperature_1, rain_advisory_level2.
+        2. Extract the event_id: this is a specific event in the system, like flash_flood_advisory_level3, low_temperature_1, rain_advisory_level2. 
         3. group_id → must be one of: {VALID_GROUPS}. if event_id is present then group id is just a parent category of that so extract from that if matching with {VALID_GROUPS}. 
         Match even if user writes without underscore or with spaces 
         (e.g. "snow ice" → "Snow/Ice"). 
@@ -172,7 +173,12 @@ def extract_id():
             - "ALL" if user asks for all IDs
             - "SUBSCRIBED" if user asks for my ids, subscribed IDs or related to user.
             - "SPECIFIC" if they mention specific facility IDs
-        6. Write a short plain-English summary of the user's request.
+        6. **eventFlag**:
+            - Boolean (true/false).
+            - true → if user explicitly refers to a specific event/advisory (e.g. "flash flood advisory", "low temperature alert").
+            - false → if user only refers to a general group/category (e.g. "storm alerts", "rain warnings").
+
+        7. Write a short plain-English summary of the user's request.
 
         Important:
         - Facility ID, event_id, and group_id are all independent; they may appear together or separately.
@@ -181,7 +187,7 @@ def extract_id():
 
         Examples:
 
-        Input: "show me flash flood advisory for GREAT_FALLS_100"
+        Input: "show me flash flood advisory level 3 for GREAT_FALLS_100"
         Output:
         {{
             "facility_id": ["GREAT_FALLS_100]",
@@ -189,7 +195,22 @@ def extract_id():
             "group_id": "flooding",
             "alertStatus": "alert",
             "intent": "SPECIFIC",
-            "summary": "User requests flash flood advisory for facility GREAT_FALLS_100."
+            "summary": "User requests flash flood advisory for facility GREAT_FALLS_100.",
+            "eventFlag": true
+
+        }}
+        
+        Input: "show me subscribed facility having thunder storm level 1"
+        Output:
+        {{
+            "facility_id": ["]",
+            "event_id": "thunderstorm_level1",
+            "group_id": "storm",
+            "alertStatus": "alert",
+            "intent": "SUBSCRIBED",
+            "summary": "User requests subscribed facilities related to thunder storm level 1.",
+            "eventFlag": true
+
         }}
 
         Input: "show all warnings for abc2"
@@ -200,7 +221,8 @@ def extract_id():
             "group_id": null,
             "alertStatus": "warning",
             "intent": "ALL",
-            "summary": "User requests all warnings related to abc2."
+            "summary": "User requests all warnings related to abc2.",
+            "eventFlag": false
         }}
 
         Input: "{text}"
@@ -230,8 +252,10 @@ def extract_id():
             "intent": ai_data.get("intent"),
             "summary": ai_data.get("summary"),
             "alertStatus": ai_data.get("alertStatus"),
-            "event_id": mapped_event.get("event_id") or ai_data.get("event_id"),
-            "group_id": mapped_event.get("group_id") or ai_data.get("group_id")
+            "event_id": mapped_event.get("event_id"),
+            "group_id": mapped_event.get("group_id") or ai_data.get("group_id"),
+            "eventFlag": ai_data.get("eventFlag", False)  # default False
+
                 }
 
         return jsonify({"success": True, "data": result})
