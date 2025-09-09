@@ -5,7 +5,6 @@ from rapidfuzz import process
 
 app = Flask(__name__)
 api_key = os.environ.get("OPENAI_API_KEY").strip()
-
 if api_key:
     print("✅ OpenAI Key Loaded, length:", len(api_key))
 else:
@@ -41,38 +40,85 @@ def normalize_text(text: str) -> str:
         return ""
     return re.sub(r"[\s\-]+", "_", text.lower()).strip("_")
 
+# def map_event_or_group_from_ai(ai_data: dict):
+#     """
+#     Map AI-provided hint to exact event_id or group_id from EVENTS JSON.
+#     Differentiates between events and groups.
+#     """
+#     hint = ai_data.get("event_id") or ai_data.get("summary") or ""
+#     norm_hint = normalize_text(hint)
+
+#     # 1️⃣ Check events first
+#     for e in EVENTS:
+#         event_id_norm = normalize_text(e.get("event_id"))
+#         event_name_norm = normalize_text(e.get("event_id_label"))  # optional
+#         if norm_hint == event_id_norm or norm_hint == event_name_norm or (event_name_norm and norm_hint in event_name_norm):
+#             return {
+#                 "event_id": e.get("event_id"),
+#                 "group_id": e.get("group_id"),
+#                 "alertStatus": e.get("alert_status")
+#             }
+
+#     # 2️⃣ If no event match, check groups
+#     for g, events in GROUP_MAP.items():
+#         group_norm = normalize_text(g)
+#         if norm_hint == group_norm or (group_norm and norm_hint in group_norm):
+#             return {
+#                 "event_id": None,
+#                 "group_id": events[0].get("group_id"),  # first event's group_id
+#                 "alertStatus": events[0].get("alert_status")
+#             }
+
+#     # fallback
+#     return {"event_id": None, "group_id": None, "alertStatus": None}
+
+from rapidfuzz import process, fuzz
+
 def map_event_or_group_from_ai(ai_data: dict):
     """
-    Map AI-provided hint to exact event_id or group_id from EVENTS JSON.
-    Differentiates between events and groups.
+    Map AI-provided hint (event_id/summary) to exact event_id or group_id
+    using EVENTS and GROUP_MAP. Prefers group match over event match.
     """
+
     hint = ai_data.get("event_id") or ai_data.get("summary") or ""
     norm_hint = normalize_text(hint)
+    if not norm_hint:
+        return {"event_id": None, "group_id": None, "alertStatus": None}
 
-    # 1️⃣ Check events first
-    for e in EVENTS:
-        event_id_norm = normalize_text(e.get("event_id"))
-        event_name_norm = normalize_text(e.get("event_id_label"))  # optional
-        if norm_hint == event_id_norm or norm_hint == event_name_norm or (event_name_norm and norm_hint in event_name_norm):
-            return {
-                "event_id": e.get("event_id"),
-                "group_id": e.get("group_id"),
-                "alertStatus": e.get("alert_status")
-            }
+    # ✅ Step 1: Try to match group_id first
+    best_group, score, _ = process.extractOne(
+        norm_hint,
+        [normalize_text(g) for g in GROUP_MAP.keys()],
+        scorer=fuzz.ratio
+    ) if GROUP_MAP else (None, 0, None)
 
-    # 2️⃣ If no event match, check groups
-    for g, events in GROUP_MAP.items():
-        group_norm = normalize_text(g)
-        if norm_hint == group_norm or (group_norm and norm_hint in group_norm):
-            return {
-                "event_id": None,
-                "group_id": events[0].get("group_id"),  # first event's group_id
-                "alertStatus": events[0].get("alert_status")
-            }
+    if best_group and score > 70:  # good enough fuzzy match
+        for g, events in GROUP_MAP.items():
+            if normalize_text(g) == best_group:
+                return {
+                    "event_id": None,  # group match, no event
+                    "group_id": events[0].get("group_id"),
+                    "alertStatus": events[0].get("alert_status")
+                }
 
-    # fallback
+    # ✅ Step 2: If no group, try to match event_id
+    best_event, score, _ = process.extractOne(
+        norm_hint,
+        [normalize_text(e.get("event_id", "")) for e in EVENTS],
+        scorer=fuzz.ratio
+    ) if EVENTS else (None, 0, None)
+
+    if best_event and score > 70:
+        for e in EVENTS:
+            if normalize_text(e.get("event_id", "")) == best_event:
+                return {
+                    "event_id": e.get("event_id"),
+                    "group_id": e.get("group_id"),
+                    "alertStatus": e.get("alert_status")
+                }
+
+    # fallback: no match
     return {"event_id": None, "group_id": None, "alertStatus": None}
-
 
 def map_event_from_ai(ai_data: dict):
     """
@@ -130,7 +176,6 @@ def extract_id():
 
         Important:
         - Facility ID, event_id, and group_id are all independent; they may appear together or separately.
-        - If user says "thunder storm" take it as "thunderstorm" as group_id.
         - User input may not match exactly — handle synonyms, spacing, capitalization, and small typos.
         - Return **valid JSON only** with keys: facility_id, event_id, group_id, alertStatus, intent, summary.
 
@@ -185,9 +230,9 @@ def extract_id():
             "intent": ai_data.get("intent"),
             "summary": ai_data.get("summary"),
             "alertStatus": ai_data.get("alertStatus"),
-            "event_id": mapped_event.get("event_id"),
-            "group_id": mapped_event.get("group_id") 
-        }
+            "event_id": mapped_event.get("event_id") or ai_data.get("event_id"),
+            "group_id": mapped_event.get("group_id") or ai_data.get("group_id")
+                }
 
         return jsonify({"success": True, "data": result})
 
