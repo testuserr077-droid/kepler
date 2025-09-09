@@ -139,7 +139,7 @@ def extract_id():
         Input: "show me flash flood advisory for GREAT_FALLS_100"
         Output:
         {{
-            "facility_id": "GREAT_FALLS_100",
+            "facility_id": ["GREAT_FALLS_100]",
             "event_id": "flash_flood_advisory_level3",
             "group_id": "flooding",
             "alertStatus": "alert",
@@ -150,7 +150,7 @@ def extract_id():
         Input: "show all warnings for abc2"
         Output:
         {{
-            "facility_id": "abc2",
+            "facility_id": ["abc2"],
             "event_id": null,
             "group_id": null,
             "alertStatus": "warning",
@@ -184,9 +184,9 @@ def extract_id():
             "facility_id": ai_data.get("facility_id"),  # directly from user input
             "intent": ai_data.get("intent"),
             "summary": ai_data.get("summary"),
-            "alertStatus": ai_data.get("alertStatus") or mapped_event.get("alertStatus"),
+            "alertStatus": ai_data.get("alertStatus"),
             "event_id": mapped_event.get("event_id"),
-            "group_id": mapped_event.get("group_id")
+            "group_id": mapped_event.get("group_id") 
         }
 
         return jsonify({"success": True, "data": result})
