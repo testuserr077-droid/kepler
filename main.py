@@ -109,7 +109,12 @@ def extract_id():
         You are a smart assistant that extracts structured information from user queries about facilities and events. 
 
         Rules:
-        1. Extract the facility_id: this is always a user-provided identifier like GREAT_FALLS_100, NV1, abc2, etc. USe underscore (_) if space are there in facility_id. If user says specifically current location then only provide CURRENT_LOCATION in facility_id otherwise null.
+        1. Extract facility_id: this must always be a JSON array (list).
+            - If the user provides one facility → return as ["FACILITY_ID"].
+            - If the user provides multiple facilities (e.g. "tara and abc") → return as ["tara", "abc"].
+            - If the user says "current location" or Similar own location → return as ["CURRENT_LOCATION"].
+            - Use underscores (_) if spaces exist in a facility_id.
+            - If none found → return [] (empty list).
         2. Extract the event_id: this is a specific event in the system, like flash_flood_advisory_level3, low_temperature_1, rain_advisory_level2.
         3. group_id → must be one of: {VALID_GROUPS}. if event_id is present then group id is just a parent category of that so extract from that if matching with {VALID_GROUPS}. 
         Match even if user writes without underscore or with spaces 
