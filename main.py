@@ -130,6 +130,7 @@ def extract_id():
 
         Important:
         - Facility ID, event_id, and group_id are all independent; they may appear together or separately.
+        - If user says "thunder storm" take it as "thunderstorm"
         - User input may not match exactly — handle synonyms, spacing, capitalization, and small typos.
         - Return **valid JSON only** with keys: facility_id, event_id, group_id, alertStatus, intent, summary.
 
