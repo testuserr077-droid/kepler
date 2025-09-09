@@ -110,17 +110,17 @@ def extract_id():
 
         Rules:
         1. Extract the facility_id: this is always a user-provided identifier like GREAT_FALLS_100, NV1, abc2, etc. USe underscore (_) if space are there in facility_id.
-            - If user says current location then provide CURRENT_LOCATION in facility_id.
-        2. Extract the event_id: this is a specific event in the system, like flash_flood_advisory_level3, low_temperature_1, rain_advisory_level2.
-        3. group_id → must be one of: {VALID_GROUPS}. if event_id is present then group id is just a parent category of that so extract from that if matching with {VALID_GROUPS}. 
+        2. If user says *current location* then only provide CURRENT_LOCATION in facility_id.
+        3. Extract the event_id: this is a specific event in the system, like flash_flood_advisory_level3, low_temperature_1, rain_advisory_level2.
+        4. group_id → must be one of: {VALID_GROUPS}. if event_id is present then group id is just a parent category of that so extract from that if matching with {VALID_GROUPS}. 
         Match even if user writes without underscore or with spaces 
         (e.g. "snow ice" → "Snow/Ice"). 
-        4. Extract alertStatus: classify as alert, warning, safe, or null based on user language.
-        5. Determine intent:
+        5. Extract alertStatus: classify as alert, warning, safe, or null based on user language.
+        6. Determine intent:
             - "ALL" if user asks for all IDs
             - "SUBSCRIBED" if user asks for my ids, subscribed IDs or related to user.
             - "SPECIFIC" if they mention specific facility IDs
-        6. Write a short plain-English summary of the user's request.
+        7. Write a short plain-English summary of the user's request.
 
         Important:
         - Facility ID, event_id, and group_id are all independent; they may appear together or separately.
