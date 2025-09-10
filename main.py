@@ -168,6 +168,7 @@ def extract_id():
         (e.g. "snow ice" → "Snow/Ice"). 
         4. Extract alertStatus:
             - Purpose: capture whether the user requests to see alerts/warnings or asserts safety.
+            - If users says *all clear*, *clear* or similar asking for facilities, consider it as *safe*.
             - Output: one of ["alert","warning","safe","null"]
         5. Determine intent:
             - "ALL" if user asks for all IDs
