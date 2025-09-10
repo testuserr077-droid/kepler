@@ -168,12 +168,14 @@ def extract_id():
         (e.g. "snow ice" → "Snow/Ice"). 
         4. Extract alertStatus:
             - Purpose: capture whether the user requests to see alerts/warnings or asserts safety.
-            - If users says *all clear*, *clear* or similar asking for facilities, consider it as *safe*.
-            - Output: one of ["alert","warning","safe","null"]
+            - If user says "all clear", "clear", "safe", or similar → "safe".
+            - If user says anything containing "alert" or "alerts" → "alert".
+            - If user says anything containing "warning" or "warnings" → "warning".
+            - Otherwise → "null".
         5. Determine intent:
             - "ALL" if user asks for all IDs
             - "SUBSCRIBED" if user asks for my ids, subscribed IDs or related to user.
-            - "SPECIFIC" if they mention specific facility IDs
+            - "SPECIFIC" if they mention specific facility IDs. If ID is present always use SPECIFIC.
         6. **eventFlag**:
             - Boolean (true/false).
             - true → if user explicitly refers to a specific event/advisory (e.g. "flash flood advisory", "low temperature alert").
